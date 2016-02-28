@@ -29,6 +29,7 @@ import org.aspectj.asm.internal.HandleProviderDelimiter;
 import org.aspectj.asm.internal.ProgramElement;
 import org.aspectj.bridge.ISourceLocation;
 import org.aspectj.bridge.SourceLocation;
+import org.aspectj.weaver.AnnotationAJ;
 import org.aspectj.weaver.Advice;
 import org.aspectj.weaver.AdviceKind;
 import org.aspectj.weaver.Checker;
@@ -794,11 +795,17 @@ public class AsmRelationshipProvider {
 
 	public static String getHandle(AsmManager asm, Advice advice) {
 		if (null == advice.handle) {
-			ISourceLocation sl = advice.getSourceLocation();
-			if (sl != null) {
-				IProgramElement ipe = asm.getHierarchy().findElementForSourceLine(sl);
-				advice.handle = ipe.getHandleIdentifier();
+			AnnotationAJ ann = getSourceLocation(advice);
+			if (ann != null) {
+				advice.handle = ann.getStringFormOfValue("file") + ann.getStringFormOfValue("line");
 			}
+			else {
+				ISourceLocation sl = advice.getSourceLocation();
+				if (sl != null) {
+					IProgramElement ipe = asm.getHierarchy().findElementForSourceLine(sl);
+					advice.handle = ipe.getHandleIdentifier();
+				}
+                        }
 		}
 		return advice.handle;
 	}
@@ -836,28 +843,44 @@ public class AsmRelationshipProvider {
 
 			extra.setExtraAdviceInformation(advice.getKind().getName());
 			IProgramElement adviceElement = model.getHierarchy().findElementForHandle(adviceHandle);
+			AnnotationAJ ann = getSourceLocation((Advice)munger);
 			if (adviceElement != null) {
+                                if (ann != null) {
+					adviceElement.setCustomLabel(ann.getStringFormOfValue("module"));
+				}
 				adviceElement.setExtraInfo(extra);
 			}
 			String targetHandle = targetNode.getHandleIdentifier();
 			if (advice.getKind().equals(AdviceKind.Softener)) {
 				IRelationship foreward = mapper.get(adviceHandle, IRelationship.Kind.DECLARE_SOFT, SOFTENS, runtimeTest, true);
 				if (foreward != null) {
+					if (ann != null) {
+						foreward.setSourceLine(Integer.parseInt(ann.getStringFormOfValue("line")));
+					}
 					foreward.addTarget(targetHandle);
 				}
 
 				IRelationship back = mapper.get(targetHandle, IRelationship.Kind.DECLARE, SOFTENED_BY, runtimeTest, true);
 				if (back != null) {
+					if (ann != null) {
+						back.setSourceLine(Integer.parseInt(ann.getStringFormOfValue("line")));
+					}
 					back.addTarget(adviceHandle);
 				}
 			} else {
 				IRelationship foreward = mapper.get(adviceHandle, IRelationship.Kind.ADVICE, ADVISES, runtimeTest, true);
 				if (foreward != null) {
+					if (ann != null) {
+                                                foreward.setSourceLine(Integer.parseInt(ann.getStringFormOfValue("line")));
+                                        }
 					foreward.addTarget(targetHandle);
 				}
 
 				IRelationship back = mapper.get(targetHandle, IRelationship.Kind.ADVICE, ADVISED_BY, runtimeTest, true);
 				if (back != null) {
+					if (ann != null) {
+                                                back.setSourceLine(Integer.parseInt(ann.getStringFormOfValue("line")));
+                                        }
 					back.addTarget(adviceHandle);
 				}
 			}
@@ -865,6 +888,15 @@ public class AsmRelationshipProvider {
 				model.addAspectInEffectThisBuild(adviceElement.getSourceLocation().getSourceFile());
 			}
 		}
+	}
+
+	public static AnnotationAJ getSourceLocation(Advice advice) {
+		for (AnnotationAJ ann : advice.getSignature().getAnnotations()) {
+			if ("org.aspectj.lang.annotation.BridgedSourceLocation".equals(ann.getTypeName())) {
+				return ann;
+			}
+		}
+		return null;
 	}
 
 	protected static IProgramElement getNode(AsmManager model, Shadow shadow) {
