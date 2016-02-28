@@ -453,4 +453,6 @@ public interface IProgramElement extends Serializable {
 	 * @return the return type of a method or type of a field in signature form (e.g. Ljava/lang/String;)
 	 */
 	public String getCorrespondingTypeSignature();
+
+	public void setCustomLabel(String customLabel);
 }
