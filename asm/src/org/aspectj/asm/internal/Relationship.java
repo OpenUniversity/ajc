@@ -30,6 +30,7 @@ public class Relationship implements IRelationship {
 	private String sourceHandle;
 	private List<String> targets;
 	private boolean hasRuntimeTest;
+        private Integer line;
 
 	public Relationship(String name, Kind kind, String sourceHandle, List<String> targets, boolean runtimeTest) {
 		this.name = name;
@@ -83,4 +84,11 @@ public class Relationship implements IRelationship {
 		return isAffects;
 	}
 
+	public Integer getSourceLine() {
+		return line;
+	}
+
+	public void setSourceLine(int line) {
+		this.line = line;
+	}
 }
