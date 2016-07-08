@@ -31,9 +31,11 @@ import org.aspectj.apache.bcel.generic.LineNumberTag;
 import org.aspectj.apache.bcel.generic.LocalVariableTag;
 import org.aspectj.bridge.ISourceLocation;
 import org.aspectj.bridge.Message;
+import org.aspectj.lang.annotation.Order;
 import org.aspectj.weaver.Advice;
 import org.aspectj.weaver.AdviceKind;
 import org.aspectj.weaver.AjAttribute;
+import org.aspectj.weaver.AnnotationAJ;
 import org.aspectj.weaver.BCException;
 import org.aspectj.weaver.IEclipseSourceContext;
 import org.aspectj.weaver.ISourceContext;
@@ -699,6 +701,12 @@ class BcelAdvice extends Advice {
 		}
 		BcelAdvice o = (BcelAdvice) other;
 
+		int order = getOrder(this);
+		int o_order = getOrder(o);
+		if (order != o_order) {
+			return order < o_order ? -1 : 1;
+		}
+
 		// System.err.println("compareTo: " + this + ", " + o);
 		if (kind.getPrecedence() != o.kind.getPrecedence()) {
 			if (kind.getPrecedence() > o.kind.getPrecedence()) {
@@ -750,6 +758,19 @@ class BcelAdvice extends Advice {
 		} else {
 			return 0;
 		}
+	}
+
+	private int getOrder(BcelAdvice advice) {
+		AnnotationAJ order = null;
+		for (AnnotationAJ ann : advice.getSignature().getAnnotations()) {
+			if (Order.class.getName().equals(ann.getTypeName())) {
+				order = ann;
+				break;
+			}
+		}
+		if (order == null)
+			return 0;
+		return Integer.valueOf(order.getStringFormOfValue("order"));
 	}
 
 	public BcelVar[] getExposedStateAsBcelVars(boolean isAround) {
