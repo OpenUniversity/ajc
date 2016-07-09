@@ -701,11 +701,13 @@ class BcelAdvice extends Advice {
 		}
 		BcelAdvice o = (BcelAdvice) other;
 
-		int order = getOrder(this);
-		int o_order = getOrder(o);
-		if (order != o_order) {
-			return order < o_order ? -1 : 1;
-		}
+		try {
+			int order = getOrder(this);
+			int o_order = getOrder(o);
+			if (order != o_order) {
+				return order < o_order ? -1 : 1;
+			}
+		} catch (Exception e) {}
 
 		// System.err.println("compareTo: " + this + ", " + o);
 		if (kind.getPrecedence() != o.kind.getPrecedence()) {
