@@ -770,7 +770,7 @@ class BcelAdvice extends Advice {
 		}
 		if (order == null)
 			return 0;
-		return Integer.valueOf(order.getStringFormOfValue("order"));
+		return Integer.valueOf(order.getStringFormOfValue("value"));
 	}
 
 	public BcelVar[] getExposedStateAsBcelVars(boolean isAround) {
