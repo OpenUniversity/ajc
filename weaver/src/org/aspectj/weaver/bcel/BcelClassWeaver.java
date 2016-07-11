@@ -59,6 +59,7 @@ import org.aspectj.bridge.MessageUtil;
 import org.aspectj.bridge.WeaveMessage;
 import org.aspectj.bridge.context.CompilationAndWeavingContext;
 import org.aspectj.bridge.context.ContextToken;
+import org.aspectj.lang.annotation.HideMethodExecution;
 import org.aspectj.util.PartialOrder;
 import org.aspectj.weaver.AjAttribute;
 import org.aspectj.weaver.AjcMemberMaker;
@@ -2642,6 +2643,7 @@ class BcelClassWeaver implements IClassWeaver {
 		List<BcelShadow> shadowAccumulator = new ArrayList<BcelShadow>();
 		boolean isOverweaving = world.isOverWeaving();
 		boolean startsAngly = mg.getName().charAt(0) == '<';
+		Boolean hide = null;
 		// we want to match ajsynthetic constructors...
 		if (startsAngly && mg.getName().equals("<init>")) {
 			return matchInit(mg, shadowAccumulator);
@@ -2661,6 +2663,7 @@ class BcelClassWeaver implements IClassWeaver {
 					if (isOverweaving && mg.getName().startsWith(NameMangler.PREFIX)) {
 						return false;
 					}
+					hide = getHideAnnotation(mg);
 					enclosingShadow = BcelShadow.makeMethodExecution(world, mg, !canMatchBodyShadows);
 				} else if (effective.isWeaveBody()) {
 					ResolvedMember rm = effective.getEffectiveSignature();
@@ -2680,14 +2683,14 @@ class BcelClassWeaver implements IClassWeaver {
 				}
 			}
 
-			if (canMatchBodyShadows) {
+			if (canMatchBodyShadows && (hide == null || !hide)) {
 				for (InstructionHandle h = mg.getBody().getStart(); h != null; h = h.getNext()) {
 					match(mg, h, enclosingShadow, shadowAccumulator);
 				}
 			}
 			// FIXME asc change from string match if we can, rather brittle.
 			// this check actually prevents field-exec jps
-			if (canMatch(enclosingShadow.getKind())
+			if (canMatch(enclosingShadow.getKind()) && hide == null
 					&& !(mg.getName().charAt(0) == 'a' && mg.getName().startsWith("ajc$interFieldInit"))) {
 				if (match(enclosingShadow, shadowAccumulator)) {
 					enclosingShadow.init();
@@ -2696,6 +2699,16 @@ class BcelClassWeaver implements IClassWeaver {
 			mg.matchedShadows = shadowAccumulator;
 			return !shadowAccumulator.isEmpty();
 		}
+	}
+
+	private Boolean getHideAnnotation(LazyMethodGen mg) {
+		if (mg.getMemberView() != null) {
+			for (AnnotationAJ ann : mg.getMemberView().getAnnotations()) {
+				if (HideMethodExecution.class.getName().equals(ann.getTypeName()))
+					return Boolean.parseBoolean(ann.getStringFormOfValue("value"));
+			}
+		}
+		return null;
 	}
 
 	private boolean matchInit(LazyMethodGen mg, List<BcelShadow> shadowAccumulator) {
