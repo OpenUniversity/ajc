@@ -3266,7 +3266,8 @@ class BcelClassWeaver implements IClassWeaver {
 				}
 			}
 		} else {
-			if (canMatch(Shadow.MethodCall)) {
+			Member jpSig = world.makeJoinPointSignatureForMethodInvocation(clazz, invoke);
+			if (canMatch(Shadow.MethodCall) && !hasHideAnnotation(jpSig)) {
 				boolean proceed = true;
 				// overweaving needs to ignore some calls added by the previous weave
 				if (world.isOverWeaving()) {
@@ -3289,6 +3290,13 @@ class BcelClassWeaver implements IClassWeaver {
 				}
 			}
 		}
+	}
+
+	private boolean hasHideAnnotation(Member jpSig) {
+		for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
+			if (HideMethodExecution.class.getName().equals(ann.getTypeName()))
+				return true;
+		return false;
 	}
 
 	// static ... so all worlds will share the config for the first one
