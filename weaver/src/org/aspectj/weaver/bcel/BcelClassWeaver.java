@@ -60,6 +60,7 @@ import org.aspectj.bridge.WeaveMessage;
 import org.aspectj.bridge.context.CompilationAndWeavingContext;
 import org.aspectj.bridge.context.ContextToken;
 import org.aspectj.lang.annotation.HideMethodExecution;
+import org.aspectj.lang.annotation.HideStaticInitialization;
 import org.aspectj.util.PartialOrder;
 import org.aspectj.weaver.AjAttribute;
 import org.aspectj.weaver.AjcMemberMaker;
@@ -2651,6 +2652,7 @@ class BcelClassWeaver implements IClassWeaver {
 			return false;
 		} else {
 			if (startsAngly && mg.getName().equals("<clinit>")) {
+				hide = getHideStaticInitAnnotation(mg);
 				// clinitShadow =
 				enclosingShadow = BcelShadow.makeStaticInitialization(world, mg);
 				// System.err.println(enclosingShadow);
@@ -2706,6 +2708,17 @@ class BcelClassWeaver implements IClassWeaver {
 			for (AnnotationAJ ann : mg.getMemberView().getAnnotations()) {
 				if (HideMethodExecution.class.getName().equals(ann.getTypeName()))
 					return Boolean.parseBoolean(ann.getStringFormOfValue("value"));
+			}
+		}
+		return null;
+	}
+
+	private Boolean getHideStaticInitAnnotation(LazyMethodGen mg) {
+		ResolvedType type = mg.getEnclosingClass().getType();
+		for (AnnotationAJ ann : type.getAnnotations()) {
+			if (HideStaticInitialization.class.getName().equals(ann.getTypeName())) {
+				String str = ann.getStringFormOfValue("value");
+				return str == null || Boolean.parseBoolean(str);
 			}
 		}
 		return null;
