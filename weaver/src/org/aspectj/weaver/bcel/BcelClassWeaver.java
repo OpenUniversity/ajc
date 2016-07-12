@@ -2706,8 +2706,10 @@ class BcelClassWeaver implements IClassWeaver {
 	private Boolean getHideAnnotation(LazyMethodGen mg) {
 		if (mg.getMemberView() != null) {
 			for (AnnotationAJ ann : mg.getMemberView().getAnnotations()) {
-				if (HideMethodExecution.class.getName().equals(ann.getTypeName()))
-					return Boolean.parseBoolean(ann.getStringFormOfValue("value"));
+				if (HideMethodExecution.class.getName().equals(ann.getTypeName())) {
+					String str = ann.getStringFormOfValue("value");
+					return str == null || Boolean.parseBoolean(str);
+				}
 			}
 		}
 		return null;
