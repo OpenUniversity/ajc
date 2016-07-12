@@ -2657,6 +2657,7 @@ class BcelClassWeaver implements IClassWeaver {
 				enclosingShadow = BcelShadow.makeStaticInitialization(world, mg);
 				// System.err.println(enclosingShadow);
 			} else if (mg.isAdviceMethod()) {
+				hide = getHideAnnotation(mg);
 				enclosingShadow = BcelShadow.makeAdviceExecution(world, mg);
 			} else {
 				AjAttribute.EffectiveSignatureAttribute effective = mg.getEffectiveSignature();
