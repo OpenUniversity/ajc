@@ -61,6 +61,7 @@ import org.aspectj.bridge.context.CompilationAndWeavingContext;
 import org.aspectj.bridge.context.ContextToken;
 import org.aspectj.lang.annotation.HideInitialization;
 import org.aspectj.lang.annotation.HideMethodExecution;
+import org.aspectj.lang.annotation.HidePreInitialization;
 import org.aspectj.lang.annotation.HideStaticInitialization;
 import org.aspectj.util.PartialOrder;
 import org.aspectj.weaver.AjAttribute;
@@ -2717,6 +2718,14 @@ class BcelClassWeaver implements IClassWeaver {
 		return null;
 	}
 
+	private boolean getHidePreInitAnnotation(LazyMethodGen mg) {
+		ResolvedType type = mg.getEnclosingClass().getType();
+		for (AnnotationAJ ann : type.getAnnotations())
+			if (HidePreInitialization.class.getName().equals(ann.getTypeName()))
+				return true;
+		return false;
+	}
+
 	private Boolean getHideInitAnnotation(LazyMethodGen mg) {
 		ResolvedType type = mg.getEnclosingClass().getType();
 		for (AnnotationAJ ann : type.getAnnotations()) {
@@ -2806,7 +2815,8 @@ class BcelClassWeaver implements IClassWeaver {
 		boolean addedInitialization = false;
 		if (hideInit == null)
 			addedInitialization = match(BcelShadow.makeUnfinishedInitialization(world, mg), initializationShadows);
-		addedInitialization |= match(BcelShadow.makeUnfinishedPreinitialization(world, mg), initializationShadows);
+		if (!getHidePreInitAnnotation(mg))
+			addedInitialization |= match(BcelShadow.makeUnfinishedPreinitialization(world, mg), initializationShadows);
 		mg.matchedShadows = shadowAccumulator;
 		return addedInitialization || !shadowAccumulator.isEmpty();
 	}
