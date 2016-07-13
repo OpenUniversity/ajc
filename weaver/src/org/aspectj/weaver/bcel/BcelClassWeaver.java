@@ -59,6 +59,7 @@ import org.aspectj.bridge.MessageUtil;
 import org.aspectj.bridge.WeaveMessage;
 import org.aspectj.bridge.context.CompilationAndWeavingContext;
 import org.aspectj.bridge.context.ContextToken;
+import org.aspectj.lang.annotation.HideInitialization;
 import org.aspectj.lang.annotation.HideMethodExecution;
 import org.aspectj.lang.annotation.HideStaticInitialization;
 import org.aspectj.util.PartialOrder;
@@ -2716,6 +2717,17 @@ class BcelClassWeaver implements IClassWeaver {
 		return null;
 	}
 
+	private Boolean getHideInitAnnotation(LazyMethodGen mg) {
+		ResolvedType type = mg.getEnclosingClass().getType();
+		for (AnnotationAJ ann : type.getAnnotations()) {
+			if (HideInitialization.class.getName().equals(ann.getTypeName())) {
+				String str = ann.getStringFormOfValue("value");
+				return str == null || Boolean.parseBoolean(str);
+			}
+		}
+		return null;
+	}
+
 	private Boolean getHideStaticInitAnnotation(LazyMethodGen mg) {
 		ResolvedType type = mg.getEnclosingClass().getType();
 		for (AnnotationAJ ann : type.getAnnotations()) {
@@ -2728,6 +2740,7 @@ class BcelClassWeaver implements IClassWeaver {
 	}
 
 	private boolean matchInit(LazyMethodGen mg, List<BcelShadow> shadowAccumulator) {
+		Boolean hideInit = getHideInitAnnotation(mg);
 		BcelShadow enclosingShadow;
 		// XXX the enclosing join point is wrong for things before ignoreMe.
 		InstructionHandle superOrThisCall = findSuperOrThisCall(mg);
@@ -2744,7 +2757,7 @@ class BcelClassWeaver implements IClassWeaver {
 
 		// walk the body
 		boolean beforeSuperOrThisCall = true;
-		if (shouldWeaveBody(mg)) {
+		if (shouldWeaveBody(mg) && (hideInit == null || !hideInit)) {
 			if (canMatchBodyShadows) {
 				for (InstructionHandle h = mg.getBody().getStart(); h != null; h = h.getNext()) {
 					if (h == superOrThisCall) {
@@ -2790,7 +2803,9 @@ class BcelClassWeaver implements IClassWeaver {
 		// call or are called only by those in the group). Then only inline
 		// constructors
 		// in groups where at least one initialization jp matched. Future work.
-		boolean addedInitialization = match(BcelShadow.makeUnfinishedInitialization(world, mg), initializationShadows);
+		boolean addedInitialization = false;
+		if (hideInit == null)
+			addedInitialization = match(BcelShadow.makeUnfinishedInitialization(world, mg), initializationShadows);
 		addedInitialization |= match(BcelShadow.makeUnfinishedPreinitialization(world, mg), initializationShadows);
 		mg.matchedShadows = shadowAccumulator;
 		return addedInitialization || !shadowAccumulator.isEmpty();
