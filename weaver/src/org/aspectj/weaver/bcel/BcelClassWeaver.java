@@ -3022,6 +3022,10 @@ class BcelClassWeaver implements IClassWeaver {
 		FieldInstruction fi = (FieldInstruction) ih.getInstruction();
 		Member field = BcelWorld.makeFieldJoinPointSignature(clazz, fi);
 
+		if (hasHideAnnotation(field)) {
+			return;
+		}
+
 		// synthetic fields are never join points
 		if (field.getName().startsWith(NameMangler.PREFIX)) {
 			return;
@@ -3054,6 +3058,10 @@ class BcelClassWeaver implements IClassWeaver {
 			List<BcelShadow> shadowAccumulator) {
 		FieldInstruction fi = (FieldInstruction) ih.getInstruction();
 		Member field = BcelWorld.makeFieldJoinPointSignature(clazz, fi);
+
+		if (hasHideAnnotation(field)) {
+			return;
+		}
 
 		// synthetic fields are never join points
 		if (field.getName().startsWith(NameMangler.PREFIX)) {
@@ -3248,7 +3256,7 @@ class BcelClassWeaver implements IClassWeaver {
 			Member jpSig = world.makeJoinPointSignatureForMethodInvocation(clazz, invoke);
 			ResolvedMember declaredSig = jpSig.resolve(world);
 			// System.err.println(method + ", declaredSig: " +declaredSig);
-			if (declaredSig == null) {
+			if (declaredSig == null || hasHideAnnotation(jpSig)) {
 				return;
 			}
 
