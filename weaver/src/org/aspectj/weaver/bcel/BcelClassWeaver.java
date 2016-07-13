@@ -2718,7 +2718,7 @@ class BcelClassWeaver implements IClassWeaver {
 		return null;
 	}
 
-	private boolean getHidePreInitAnnotation(LazyMethodGen mg) {
+	private boolean hasHidePreInitAnnotation(LazyMethodGen mg) {
 		ResolvedType type = mg.getEnclosingClass().getType();
 		for (AnnotationAJ ann : type.getAnnotations())
 			if (HidePreInitialization.class.getName().equals(ann.getTypeName()))
@@ -2815,7 +2815,7 @@ class BcelClassWeaver implements IClassWeaver {
 		boolean addedInitialization = false;
 		if (hideInit == null)
 			addedInitialization = match(BcelShadow.makeUnfinishedInitialization(world, mg), initializationShadows);
-		if (!getHidePreInitAnnotation(mg))
+		if (!hasHidePreInitAnnotation(mg))
 			addedInitialization |= match(BcelShadow.makeUnfinishedPreinitialization(world, mg), initializationShadows);
 		mg.matchedShadows = shadowAccumulator;
 		return addedInitialization || !shadowAccumulator.isEmpty();
