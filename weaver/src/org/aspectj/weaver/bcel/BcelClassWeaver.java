@@ -61,6 +61,7 @@ import org.aspectj.bridge.context.CompilationAndWeavingContext;
 import org.aspectj.bridge.context.ContextToken;
 import org.aspectj.lang.annotation.HideInitialization;
 import org.aspectj.lang.annotation.Hide;
+import org.aspectj.lang.annotation.HideExceptions;
 import org.aspectj.lang.annotation.HidePreInitialization;
 import org.aspectj.lang.annotation.HideStaticInitialization;
 import org.aspectj.util.PartialOrder;
@@ -2706,6 +2707,14 @@ class BcelClassWeaver implements IClassWeaver {
 		}
 	}
 
+	private boolean hasHideExceptionsAnnotation(LazyMethodGen mg) {
+		if (mg.getMemberView() != null)
+			for (AnnotationAJ ann : mg.getMemberView().getAnnotations())
+				if (HideExceptions.class.getName().equals(ann.getTypeName()))
+					return true;
+		return false;
+	}
+
 	private Boolean getHideAnnotation(LazyMethodGen mg) {
 		if (mg.getMemberView() != null) {
 			for (AnnotationAJ ann : mg.getMemberView().getAnnotations()) {
@@ -2862,6 +2871,8 @@ class BcelClassWeaver implements IClassWeaver {
 
 		// Exception handlers (pr230817)
 		if (canMatch(Shadow.ExceptionHandler) && !Range.isRangeHandle(ih)) {
+			if (hasHideExceptionsAnnotation(mg))
+				return;
 			Set<InstructionTargeter> targeters = ih.getTargetersCopy();
 			// If in Java7 there may be overlapping exception ranges for multi catch - we should recognize that
 			for (InstructionTargeter t : targeters) {
