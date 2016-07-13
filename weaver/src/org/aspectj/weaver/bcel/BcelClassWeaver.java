@@ -60,7 +60,7 @@ import org.aspectj.bridge.WeaveMessage;
 import org.aspectj.bridge.context.CompilationAndWeavingContext;
 import org.aspectj.bridge.context.ContextToken;
 import org.aspectj.lang.annotation.HideInitialization;
-import org.aspectj.lang.annotation.HideMethodExecution;
+import org.aspectj.lang.annotation.Hide;
 import org.aspectj.lang.annotation.HidePreInitialization;
 import org.aspectj.lang.annotation.HideStaticInitialization;
 import org.aspectj.util.PartialOrder;
@@ -2709,7 +2709,7 @@ class BcelClassWeaver implements IClassWeaver {
 	private Boolean getHideAnnotation(LazyMethodGen mg) {
 		if (mg.getMemberView() != null) {
 			for (AnnotationAJ ann : mg.getMemberView().getAnnotations()) {
-				if (HideMethodExecution.class.getName().equals(ann.getTypeName())) {
+				if (Hide.class.getName().equals(ann.getTypeName())) {
 					String str = ann.getStringFormOfValue("value");
 					return str == null || Boolean.parseBoolean(str);
 				}
@@ -3319,7 +3319,7 @@ class BcelClassWeaver implements IClassWeaver {
 
 	private boolean hasHideAnnotation(Member jpSig) {
 		for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
-			if (HideMethodExecution.class.getName().equals(ann.getTypeName()))
+			if (Hide.class.getName().equals(ann.getTypeName()))
 				return true;
 		return false;
 	}
