@@ -30,6 +30,16 @@ public class ConfigParser {
 	private boolean fileParsed = false;
 	protected static String CONFIG_MSG = "build config error: ";
 
+    private static final List<Transformation> transformations = new ArrayList<Transformation>();
+
+    static {
+	try {
+	    transformations.add((Transformation) Class.forName("org.aspectj.ajdt.ajc.muAudit").newInstance());
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+    }
+
 	public List<File> getFiles() {
 		return files;
 	}
@@ -123,6 +133,14 @@ public class ConfigParser {
 	protected void addFile(File sourceFile) {
 		if (!sourceFile.isFile()) {
 			showError("source file does not exist: " + sourceFile.getPath());
+		}
+		for (Transformation t : transformations) {
+		    if (sourceFile.getName().endsWith(t.extension())){
+			try {
+			    sourceFile = t.convert2java(sourceFile);
+			    break;
+			} catch (Exception e) {}
+		    }
 		}
 		files.add(sourceFile);
 	}
@@ -227,6 +245,11 @@ public class ConfigParser {
 		}
 		if (s.endsWith(".aj")) {
 			return true;
+		}
+		for (Transformation t : transformations) {
+		    if (s.endsWith(t.extension())) {
+			return true;
+		    }
 		}
 		// if (s.endsWith(".ajava")) {
 		// showWarning(".ajava is deprecated, replace with .aj or .java: " + s);
