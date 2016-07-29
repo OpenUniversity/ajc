@@ -662,7 +662,7 @@ public class FileUtil {
 	public static final FileFilter aspectjSourceFileFilter = new FileFilter() {
 		public boolean accept(File pathname) {
 			String name = pathname.getName().toLowerCase();
-			return name.endsWith(".java") || name.endsWith(".aj");
+			return name.endsWith(".java") || name.endsWith(".aj") || name.endsWith(".audit");
 		}
 	};
 

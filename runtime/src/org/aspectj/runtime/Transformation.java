@@ -1,7 +1,6 @@
-package org.aspectj.ajdt.ajc;
+package org.aspectj.runtime;
 
 import java.io.File;
-import java.util.List;
 
 public interface Transformation {
     String extension();

@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import org.aspectj.ajdt.ajc.BuildArgParser;
 import org.aspectj.ajdt.internal.compiler.CompilationResultDestinationManager;
 import org.aspectj.util.FileUtil;
+import org.aspectj.runtime.Transformation;
 
 /**
  * All configuration information needed to run the AspectJ compiler. Compiler options (as opposed to path information) are held in
@@ -76,6 +77,18 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	// incremental variants handled by the compiler client, but parsed here
 	private boolean incrementalMode;
 	private File incrementalFile;
+
+	private static final List<Transformation> transformations = new ArrayList<Transformation>();
+
+    static {
+        try {
+            System.err.println("looking for transformations2");
+            transformations.add((Transformation) Class.forName("com.mucommander.auditing.generator.Main").newInstance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
@@ -181,6 +194,21 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	}
 
 	public void setFiles(List<File> files) {
+                System.err.println("checking transformations2");
+		List<File> files2 = new ArrayList<File>();
+		for (File file : files) {
+                	for (Transformation t : transformations) {
+        		    if (file.getName().endsWith(t.extension())){
+	                        try {
+                	            System.err.println("found transformation2!");
+                        	    file = t.convert2java(file);
+        	                    break;
+                        	} catch (Exception e) { e.printStackTrace(); }
+	                    }	
+                	}
+		    files2.add(file);
+		}
+
 		this.files = files;
 	}
 

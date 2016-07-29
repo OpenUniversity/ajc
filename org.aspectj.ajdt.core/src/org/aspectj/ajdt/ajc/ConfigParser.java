@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.aspectj.runtime.Transformation;
+
 public class ConfigParser {
 	Location location;
 	protected File relativeDirectory = null;
@@ -34,7 +36,8 @@ public class ConfigParser {
 
     static {
 	try {
-	    transformations.add((Transformation) Class.forName("org.aspectj.ajdt.ajc.muAudit").newInstance());
+	    System.err.println("looking for transformations");
+	    transformations.add((Transformation) Class.forName("com.mucommander.auditing.generator.Main").newInstance());
 	} catch (Exception e) {
 	    e.printStackTrace();
 	}
@@ -52,6 +55,7 @@ public class ConfigParser {
 		location = new CommandLineLocation();
 		LinkedList<Arg> args = new LinkedList<Arg>();
 		for (int i = 0; i < argsArray.length; i++) {
+		    System.err.println("moran: " + argsArray[i]);
 			args.add(new Arg(argsArray[i], location));
 		}
 		parseArgs(args);
@@ -86,6 +90,7 @@ public class ConfigParser {
 				if (line.length() == 0) {
 					continue;
 				}
+				System.err.println("line: " + line);
 				args.add(new Arg(line, new CPSourceLocation(configFile, lineNum)));
 			}
 			stream.close();
@@ -134,12 +139,14 @@ public class ConfigParser {
 		if (!sourceFile.isFile()) {
 			showError("source file does not exist: " + sourceFile.getPath());
 		}
+		System.err.println("checking transformations");
 		for (Transformation t : transformations) {
 		    if (sourceFile.getName().endsWith(t.extension())){
 			try {
+			    System.err.println("found transformation!");
 			    sourceFile = t.convert2java(sourceFile);
 			    break;
-			} catch (Exception e) {}
+			} catch (Exception e) { e.printStackTrace(); }
 		    }
 		}
 		files.add(sourceFile);
@@ -246,6 +253,7 @@ public class ConfigParser {
 		if (s.endsWith(".aj")) {
 			return true;
 		}
+		System.err.println("got: " + s);
 		for (Transformation t : transformations) {
 		    if (s.endsWith(t.extension())) {
 			return true;
@@ -261,6 +269,7 @@ public class ConfigParser {
 	void parseOneArg(LinkedList args) {
 		Arg arg = removeArg(args);
 		String v = arg.getValue();
+		System.err.println("arg " + v);
 		location = arg.getLocation();
 		if (v.startsWith("@")) {
 			parseImportedConfigFile(v.substring(1));
@@ -276,6 +285,7 @@ public class ConfigParser {
 	}
 
 	protected void parseImportedConfigFile(String relativeFilePath) {
+	    System.err.println("argfile = " + relativeFilePath);
 		parseConfigFileHelper(makeFile(relativeFilePath));
 	}
 
