@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.aspectj.ajdt.internal.core.builder.AjBuildConfig;
 import org.aspectj.runtime.Transformation;
 
 public class ConfigParser {
@@ -31,16 +32,6 @@ public class ConfigParser {
 	protected List<File> xmlfiles = new ArrayList<File>();
 	private boolean fileParsed = false;
 	protected static String CONFIG_MSG = "build config error: ";
-
-    private static final List<Transformation> transformations = new ArrayList<Transformation>();
-
-    static {
-	try {
-	    transformations.add((Transformation) Class.forName("com.mucommander.auditing.generator.Main").newInstance());
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
-    }
 
 	public List<File> getFiles() {
 		return files;
@@ -252,7 +243,7 @@ public class ConfigParser {
 			return true;
 		}
 		//		System.err.println("got: " + s);
-		for (Transformation t : transformations) {
+		for (Transformation t : AjBuildConfig.transformations) {
 		    if (s.endsWith(t.extension())) {
 			return true;
 		    }
