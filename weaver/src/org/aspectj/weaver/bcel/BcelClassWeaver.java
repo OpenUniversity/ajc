@@ -3337,10 +3337,13 @@ class BcelClassWeaver implements IClassWeaver {
 	}
 
 	private boolean hasHideAnnotation(Member jpSig) {
-		for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
-			if (Hide.class.getName().equals(ann.getTypeName()))
-				return true;
+	    //	    if (jpSig.resolve(world) == null || jpSig.resolve(world).getAnnotations() == null) return false;
+	    if (jpSig.resolve(world).getAnnotations() == null)
 		return false;
+	    for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
+		if (Hide.class.getName().equals(ann.getTypeName()))
+		    return true;
+	    return false;
 	}
 
 	// static ... so all worlds will share the config for the first one
