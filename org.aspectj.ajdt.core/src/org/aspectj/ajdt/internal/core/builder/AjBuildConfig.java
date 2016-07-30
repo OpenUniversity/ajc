@@ -78,7 +78,7 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	private boolean incrementalMode;
 	private File incrementalFile;
 
-	private static final List<Transformation> transformations = new ArrayList<Transformation>();
+	public static final List<Transformation> transformations = new ArrayList<Transformation>();
 
     static {
         try {
@@ -194,21 +194,6 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	}
 
 	public void setFiles(List<File> files) {
-                System.err.println("checking transformations2");
-		List<File> files2 = new ArrayList<File>();
-		for (File file : files) {
-                	for (Transformation t : transformations) {
-        		    if (file.getName().endsWith(t.extension())){
-	                        try {
-                	            System.err.println("found transformation2!");
-                        	    file = t.convert2java(file);
-        	                    break;
-                        	} catch (Exception e) { e.printStackTrace(); }
-	                    }	
-                	}
-		    files2.add(file);
-		}
-
 		this.files = files;
 	}
 

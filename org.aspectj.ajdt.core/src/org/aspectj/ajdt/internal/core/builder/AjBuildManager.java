@@ -95,6 +95,8 @@ import org.aspectj.weaver.bcel.BcelWorld;
 import org.aspectj.weaver.bcel.UnwovenClassFile;
 import org.eclipse.core.runtime.OperationCanceledException;
 
+import org.aspectj.runtime.Transformation;
+
 public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySourceProvider, ICompilerAdapterFactory {
 	private static final String CROSSREFS_FILE_NAME = "build.lst";
 	private static final String CANT_WRITE_RESULT = "unable to write compilation result";
@@ -994,6 +996,13 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 		int idx = 0;
 		for (Iterator<File> fIterator = files.iterator(); fIterator.hasNext();) {
 			File f = fIterator.next();
+			for (Transformation t : AjBuildConfig.transformations) {
+			    if (f.getName().endsWith(t.extension())){
+				try { f = t.convert2java(f); }
+				catch (Exception e) { e.printStackTrace(); }
+				break;
+			    }
+			}
 			filenames[idx++] = f.getPath();
 		}
 
