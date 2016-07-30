@@ -16,7 +16,10 @@
 
 package org.aspectj.ajdt.internal.core.builder;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,12 +84,27 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	public static final List<Transformation> transformations = new ArrayList<Transformation>();
 
     static {
-        try {
-            System.err.println("looking for transformations2");
-            transformations.add((Transformation) Class.forName("com.mucommander.auditing.generator.Main").newInstance());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+	File dsals = new File("dsals.txt");
+	if (dsals.exists()) {
+	    //	    System.err.println("loading transformations");
+	    BufferedReader br = null;
+	    try {
+		FileInputStream fis = new FileInputStream(dsals);
+		br = new BufferedReader(new InputStreamReader(fis));
+		String line = null;
+		while ((line = br.readLine()) != null) {
+		    transformations.add((Transformation) Class.forName(line).newInstance());
+		}
+	    } catch (Exception e) {
+		e.printStackTrace();
+		System.exit(1);
+	    }
+	    finally {
+		if (br != null)
+		    try { br.close(); }
+		    catch(Exception e) { e.printStackTrace(); }
+	    }
+	}
     }
 
 
