@@ -60,8 +60,8 @@ import org.aspectj.bridge.WeaveMessage;
 import org.aspectj.bridge.context.CompilationAndWeavingContext;
 import org.aspectj.bridge.context.ContextToken;
 import org.aspectj.lang.annotation.HideInitialization;
-import org.aspectj.lang.annotation.Hide;
-import org.aspectj.lang.annotation.HideExceptions;
+import org.aspectj.lang.annotation.HideField;
+import org.aspectj.lang.annotation.HideMethod;
 import org.aspectj.lang.annotation.HidePreInitialization;
 import org.aspectj.lang.annotation.HideStaticInitialization;
 import org.aspectj.util.PartialOrder;
@@ -2647,7 +2647,8 @@ class BcelClassWeaver implements IClassWeaver {
 		List<BcelShadow> shadowAccumulator = new ArrayList<BcelShadow>();
 		boolean isOverweaving = world.isOverWeaving();
 		boolean startsAngly = mg.getName().charAt(0) == '<';
-		Boolean hide = null;
+		boolean hide = false;
+		boolean hideWithin = false;
 		// we want to match ajsynthetic constructors...
 		if (startsAngly && mg.getName().equals("<init>")) {
 			return matchInit(mg, shadowAccumulator);
@@ -2655,12 +2656,23 @@ class BcelClassWeaver implements IClassWeaver {
 			return false;
 		} else {
 			if (startsAngly && mg.getName().equals("<clinit>")) {
-				hide = getHideStaticInitAnnotation(mg);
+				AnnotationAJ hideAnn = getHideStaticInitAnnotation(mg);
+				if (hideAnn != null) {
+				    hide = true;
+				    String hideJoinpointsWithinStr = hideAnn.getStringFormOfValue("hideJoinpointsWithin");
+				    hideWithin = hideJoinpointsWithinStr == null || Boolean.parseBoolean(hideJoinpointsWithinStr);
+				}
 				// clinitShadow =
 				enclosingShadow = BcelShadow.makeStaticInitialization(world, mg);
 				// System.err.println(enclosingShadow);
 			} else if (mg.isAdviceMethod()) {
-				hide = getHideAnnotation(mg);
+				AnnotationAJ hideAnn = getHideMethodAnnotation(mg);
+				if (hideAnn != null) {
+				    String hideStr = hideAnn.getStringFormOfValue("joinpoints");
+				    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;EXECUTION");
+				    String hideJoinpointsWithinStr = hideAnn.getStringFormOfValue("hideJoinpointsWithin");
+				    hideWithin = hideJoinpointsWithinStr == null || Boolean.parseBoolean(hideJoinpointsWithinStr);
+				}
 				enclosingShadow = BcelShadow.makeAdviceExecution(world, mg);
 			} else {
 				AjAttribute.EffectiveSignatureAttribute effective = mg.getEffectiveSignature();
@@ -2669,7 +2681,13 @@ class BcelClassWeaver implements IClassWeaver {
 					if (isOverweaving && mg.getName().startsWith(NameMangler.PREFIX)) {
 						return false;
 					}
-					hide = getHideAnnotation(mg);
+					AnnotationAJ hideAnn = getHideMethodAnnotation(mg);
+					if (hideAnn != null) {
+					    String hideStr = hideAnn.getStringFormOfValue("joinpoints");
+					    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;EXECUTION");
+					    String hideJoinpointsWithinStr = hideAnn.getStringFormOfValue("hideJoinpointsWithin");
+					    hideWithin = hideJoinpointsWithinStr == null || Boolean.parseBoolean(hideJoinpointsWithinStr);
+					}
 					enclosingShadow = BcelShadow.makeMethodExecution(world, mg, !canMatchBodyShadows);
 				} else if (effective.isWeaveBody()) {
 					ResolvedMember rm = effective.getEffectiveSignature();
@@ -2689,14 +2707,14 @@ class BcelClassWeaver implements IClassWeaver {
 				}
 			}
 
-			if (canMatchBodyShadows && (hide == null || !hide)) {
+			if (canMatchBodyShadows && !hideWithin) {
 				for (InstructionHandle h = mg.getBody().getStart(); h != null; h = h.getNext()) {
 					match(mg, h, enclosingShadow, shadowAccumulator);
 				}
 			}
 			// FIXME asc change from string match if we can, rather brittle.
 			// this check actually prevents field-exec jps
-			if (canMatch(enclosingShadow.getKind()) && hide == null
+			if (canMatch(enclosingShadow.getKind()) && !hide
 					&& !(mg.getName().charAt(0) == 'a' && mg.getName().startsWith("ajc$interFieldInit"))) {
 				if (match(enclosingShadow, shadowAccumulator)) {
 					enclosingShadow.init();
@@ -2707,58 +2725,53 @@ class BcelClassWeaver implements IClassWeaver {
 		}
 	}
 
-	private boolean hasHideExceptionsAnnotation(LazyMethodGen mg) {
-		if (mg.getMemberView() != null)
-			for (AnnotationAJ ann : mg.getMemberView().getAnnotations())
-				if (HideExceptions.class.getName().equals(ann.getTypeName()))
-					return true;
-		return false;
-	}
-
-	private Boolean getHideAnnotation(LazyMethodGen mg) {
-		if (mg.getMemberView() != null) {
-			for (AnnotationAJ ann : mg.getMemberView().getAnnotations()) {
-				if (Hide.class.getName().equals(ann.getTypeName())) {
-					String str = ann.getStringFormOfValue("value");
-					return str == null || Boolean.parseBoolean(str);
-				}
-			}
+	private AnnotationAJ getHideMethodAnnotation(LazyMethodGen mg) {
+	    if (mg.getMemberView() != null) {
+		for (AnnotationAJ ann : mg.getMemberView().getAnnotations()) {
+		    if (HideMethod.class.getName().equals(ann.getTypeName()))
+			return ann;
 		}
-		return null;
+	    }
+	    return null;
 	}
 
-	private boolean hasHidePreInitAnnotation(LazyMethodGen mg) {
-		ResolvedType type = mg.getEnclosingClass().getType();
-		for (AnnotationAJ ann : type.getAnnotations())
-			if (HidePreInitialization.class.getName().equals(ann.getTypeName()))
-				return true;
-		return false;
+	private boolean hidePreInitialization(LazyMethodGen mg) {
+	    ResolvedType type = mg.getEnclosingClass().getType();
+	    for (AnnotationAJ ann : type.getAnnotations())
+		if (HidePreInitialization.class.getName().equals(ann.getTypeName()))
+		    return true;
+	    return false;
 	}
 
-	private Boolean getHideInitAnnotation(LazyMethodGen mg) {
-		ResolvedType type = mg.getEnclosingClass().getType();
-		for (AnnotationAJ ann : type.getAnnotations()) {
-			if (HideInitialization.class.getName().equals(ann.getTypeName())) {
-				String str = ann.getStringFormOfValue("value");
-				return str == null || Boolean.parseBoolean(str);
-			}
+	private AnnotationAJ getHideInitAnnotation(LazyMethodGen mg) {
+	    ResolvedType type = mg.getEnclosingClass().getType();
+	    for (AnnotationAJ ann : type.getAnnotations()) {
+		if (HideInitialization.class.getName().equals(ann.getTypeName())) {
+		    return ann;
 		}
-		return null;
+	    }
+	    return null;
 	}
 
-	private Boolean getHideStaticInitAnnotation(LazyMethodGen mg) {
+	private AnnotationAJ getHideStaticInitAnnotation(LazyMethodGen mg) {
 		ResolvedType type = mg.getEnclosingClass().getType();
 		for (AnnotationAJ ann : type.getAnnotations()) {
 			if (HideStaticInitialization.class.getName().equals(ann.getTypeName())) {
-				String str = ann.getStringFormOfValue("value");
-				return str == null || Boolean.parseBoolean(str);
+			    return ann;
 			}
 		}
 		return null;
 	}
 
 	private boolean matchInit(LazyMethodGen mg, List<BcelShadow> shadowAccumulator) {
-		Boolean hideInit = getHideInitAnnotation(mg);
+	    boolean hide = false;
+	    boolean hideWithin = false;
+	    AnnotationAJ hideAnn = getHideInitAnnotation(mg);
+	    if (hideAnn != null) {
+		hide = true;
+		String hideJoinpointsWithinStr = hideAnn.getStringFormOfValue("hideJoinpointsWithin");
+		hideWithin = hideJoinpointsWithinStr == null || Boolean.parseBoolean(hideJoinpointsWithinStr);
+	    }
 		BcelShadow enclosingShadow;
 		// XXX the enclosing join point is wrong for things before ignoreMe.
 		InstructionHandle superOrThisCall = findSuperOrThisCall(mg);
@@ -2775,7 +2788,7 @@ class BcelClassWeaver implements IClassWeaver {
 
 		// walk the body
 		boolean beforeSuperOrThisCall = true;
-		if (shouldWeaveBody(mg) && (hideInit == null || !hideInit)) {
+		if (shouldWeaveBody(mg) && !hideWithin) {
 			if (canMatchBodyShadows) {
 				for (InstructionHandle h = mg.getBody().getStart(); h != null; h = h.getNext()) {
 					if (h == superOrThisCall) {
@@ -2822,9 +2835,9 @@ class BcelClassWeaver implements IClassWeaver {
 		// constructors
 		// in groups where at least one initialization jp matched. Future work.
 		boolean addedInitialization = false;
-		if (hideInit == null)
+		if (!hide)
 			addedInitialization = match(BcelShadow.makeUnfinishedInitialization(world, mg), initializationShadows);
-		if (!hasHidePreInitAnnotation(mg))
+		if (!hidePreInitialization(mg))
 			addedInitialization |= match(BcelShadow.makeUnfinishedPreinitialization(world, mg), initializationShadows);
 		mg.matchedShadows = shadowAccumulator;
 		return addedInitialization || !shadowAccumulator.isEmpty();
@@ -2871,8 +2884,6 @@ class BcelClassWeaver implements IClassWeaver {
 
 		// Exception handlers (pr230817)
 		if (canMatch(Shadow.ExceptionHandler) && !Range.isRangeHandle(ih)) {
-			if (hasHideExceptionsAnnotation(mg))
-				return;
 			Set<InstructionTargeter> targeters = ih.getTargetersCopy();
 			// If in Java7 there may be overlapping exception ranges for multi catch - we should recognize that
 			for (InstructionTargeter t : targeters) {
@@ -3033,7 +3044,7 @@ class BcelClassWeaver implements IClassWeaver {
 		FieldInstruction fi = (FieldInstruction) ih.getInstruction();
 		Member field = BcelWorld.makeFieldJoinPointSignature(clazz, fi);
 
-		if (hasHideAnnotation(field)) {
+		if (hideSetInstruction(field)) {
 			return;
 		}
 
@@ -3070,7 +3081,7 @@ class BcelClassWeaver implements IClassWeaver {
 		FieldInstruction fi = (FieldInstruction) ih.getInstruction();
 		Member field = BcelWorld.makeFieldJoinPointSignature(clazz, fi);
 
-		if (hasHideAnnotation(field)) {
+		if (hideGetInstruction(field)) {
 			return;
 		}
 
@@ -3267,7 +3278,7 @@ class BcelClassWeaver implements IClassWeaver {
 			Member jpSig = world.makeJoinPointSignatureForMethodInvocation(clazz, invoke);
 			ResolvedMember declaredSig = jpSig.resolve(world);
 			// System.err.println(method + ", declaredSig: " +declaredSig);
-			if (declaredSig == null || hasHideAnnotation(jpSig)) {
+			if (declaredSig == null) {
 				return;
 			}
 
@@ -3279,7 +3290,7 @@ class BcelClassWeaver implements IClassWeaver {
 					kind = Shadow.FieldGet;
 				}
 
-				if (canMatch(Shadow.FieldGet) || canMatch(Shadow.FieldSet)) {
+				if ((canMatch(Shadow.FieldGet) && hideGetInstruction(declaredSig)) || (canMatch(Shadow.FieldSet) && hideSetInstruction(declaredSig))) {
 					match(BcelShadow.makeShadowForMethodCall(world, mg, ih, enclosingShadow, kind, declaredSig), shadowAccumulator);
 				}
 			} else if (!declaredSig.getName().startsWith(NameMangler.PREFIX)) {
@@ -3304,6 +3315,7 @@ class BcelClassWeaver implements IClassWeaver {
 				fixParameterNamesForResolvedMember(rm, declaredSig);
 				fixAnnotationsForResolvedMember(rm, declaredSig); // abracadabra
 
+				// not sure..
 				if (canMatch(effectiveSig.getShadowKind())) {
 					match(BcelShadow.makeShadowForMethodCall(world, mg, ih, enclosingShadow, effectiveSig.getShadowKind(), rm),
 							shadowAccumulator);
@@ -3311,7 +3323,7 @@ class BcelClassWeaver implements IClassWeaver {
 			}
 		} else {
 			Member jpSig = world.makeJoinPointSignatureForMethodInvocation(clazz, invoke);
-			if (canMatch(Shadow.MethodCall) && !hasHideAnnotation(jpSig)) {
+			if (canMatch(Shadow.MethodCall) && !hideInvokeInstruction(jpSig)) {
 				boolean proceed = true;
 				// overweaving needs to ignore some calls added by the previous weave
 				if (world.isOverWeaving()) {
@@ -3336,15 +3348,39 @@ class BcelClassWeaver implements IClassWeaver {
 		}
 	}
 
-	private boolean hasHideAnnotation(Member jpSig) {
-	    //	    if (jpSig.resolve(world) == null || jpSig.resolve(world).getAnnotations() == null) return false;
-	    if (jpSig.resolve(world).getAnnotations() == null)
-		return false;
-	    for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
-		if (Hide.class.getName().equals(ann.getTypeName()))
-		    return true;
+    private boolean hideInvokeInstruction(Member jpSig) {
+	if (jpSig.resolve(world).getAnnotations() == null)
 	    return false;
+	for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations()) {
+	    if (HideMethod.class.getName().equals(ann.getTypeName())) {
+		String joinpoints = ann.getStringFormOfValue("joinpoints");
+		return joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;CALL");
+	    }
 	}
+	return false;
+    }
+
+    private boolean hideSetInstruction(Member jpSig) {
+	if (jpSig.resolve(world).getAnnotations() == null)
+	    return false;
+	for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
+	    if (HideField.class.getName().equals(ann.getTypeName())) {
+		String joinpoints = ann.getStringFormOfValue("joinpoints");
+		return joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/FieldJoinpointType;SET");
+	    }
+	return false;
+    }
+
+    private boolean hideGetInstruction(Member jpSig) {
+	if (jpSig.resolve(world).getAnnotations() == null)
+	    return false;
+	for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
+	    if (HideField.class.getName().equals(ann.getTypeName())) {
+		String joinpoints = ann.getStringFormOfValue("joinpoints");
+		return joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/FieldJoinpointType;GET");
+	    }
+	return false;
+    }
 
 	// static ... so all worlds will share the config for the first one
 	// created...

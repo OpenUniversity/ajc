@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface HideExceptions {
-
+@Target(ElementType.FIELD)
+public @interface HideField {
+    FieldJoinpointType[] joinpoints() default { FieldJoinpointType.SET, FieldJoinpointType.GET };
 }

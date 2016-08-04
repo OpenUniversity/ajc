@@ -8,6 +8,5 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface HideInitialization {
-
-	boolean value() default true;
+    boolean hideJoinpointsWithin() default true;
 }
