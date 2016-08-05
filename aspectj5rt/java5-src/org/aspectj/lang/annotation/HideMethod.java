@@ -8,6 +8,5 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface HideMethod {
-    MethodJoinpointType[] joinpoints() default { MethodJoinpointType.EXECUTION, MethodJoinpointType.CALL };
-    boolean hideJoinpointsWithin() default true;
+    MethodJoinpointType[] joinpoints() default { MethodJoinpointType.EXECUTION, MethodJoinpointType.CALL, MethodJoinpointType.ALL_WITHIN };
 }

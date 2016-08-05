@@ -2670,8 +2670,7 @@ class BcelClassWeaver implements IClassWeaver {
 				if (hideAnn != null) {
 				    String hideStr = hideAnn.getStringFormOfValue("joinpoints");
 				    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;EXECUTION");
-				    String hideJoinpointsWithinStr = hideAnn.getStringFormOfValue("hideJoinpointsWithin");
-				    hideWithin = hideJoinpointsWithinStr == null || Boolean.parseBoolean(hideJoinpointsWithinStr);
+				    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;ALL_WITHIN");
 				}
 				enclosingShadow = BcelShadow.makeAdviceExecution(world, mg);
 			} else {
@@ -2685,8 +2684,7 @@ class BcelClassWeaver implements IClassWeaver {
 					if (hideAnn != null) {
 					    String hideStr = hideAnn.getStringFormOfValue("joinpoints");
 					    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;EXECUTION");
-					    String hideJoinpointsWithinStr = hideAnn.getStringFormOfValue("hideJoinpointsWithin");
-					    hideWithin = hideJoinpointsWithinStr == null || Boolean.parseBoolean(hideJoinpointsWithinStr);
+					    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;ALL_WITHIN");
 					}
 					enclosingShadow = BcelShadow.makeMethodExecution(world, mg, !canMatchBodyShadows);
 				} else if (effective.isWeaveBody()) {
