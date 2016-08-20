@@ -3362,10 +3362,10 @@ class BcelClassWeaver implements IClassWeaver {
 	if (jpSig.resolve(world).getAnnotations() == null)
 	    return false;
 	for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
-	    if (HideField.class.getName().equals(ann.getTypeName())) {
-		String joinpoints = ann.getStringFormOfValue("joinpoints");
-		return joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/FieldJoinpointType;SET");
-	    }
+		if (HideField.class.getName().equals(ann.getTypeName())) {
+			String joinpoints = ann.getStringFormOfValue("joinpoints");
+			return joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/FieldJoinpointType;SET");
+		}
 	return false;
     }
 
@@ -3374,8 +3374,8 @@ class BcelClassWeaver implements IClassWeaver {
 	    return false;
 	for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
 	    if (HideField.class.getName().equals(ann.getTypeName())) {
-		String joinpoints = ann.getStringFormOfValue("joinpoints");
-		return joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/FieldJoinpointType;GET");
+            String joinpoints = ann.getStringFormOfValue("joinpoints");
+            return joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/FieldJoinpointType;GET");
 	    }
 	return false;
     }
