@@ -702,8 +702,8 @@ class BcelAdvice extends Advice {
 		BcelAdvice o = (BcelAdvice) other;
 
 		try {
-			int order = getOrder(this);
-			int o_order = getOrder(o);
+			double order = getOrder(this);
+			double o_order = getOrder(o);
 			if (order != o_order) {
 				return order < o_order ? -1 : 1;
 			}
@@ -762,7 +762,7 @@ class BcelAdvice extends Advice {
 		}
 	}
 
-	private int getOrder(BcelAdvice advice) {
+	private double getOrder(BcelAdvice advice) {
 		AnnotationAJ order = null;
 		for (AnnotationAJ ann : advice.getSignature().getAnnotations()) {
 			if (Order.class.getName().equals(ann.getTypeName())) {
@@ -772,7 +772,7 @@ class BcelAdvice extends Advice {
 		}
 		if (order == null)
 			return 0;
-		return Integer.valueOf(order.getStringFormOfValue("value"));
+		return Double.valueOf(order.getStringFormOfValue("value"));
 	}
 
 	public BcelVar[] getExposedStateAsBcelVars(boolean isAround) {
