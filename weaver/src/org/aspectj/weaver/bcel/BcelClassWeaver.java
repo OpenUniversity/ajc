@@ -62,8 +62,6 @@ import org.aspectj.bridge.context.ContextToken;
 import org.aspectj.lang.annotation.HideInitialization;
 import org.aspectj.lang.annotation.HideField;
 import org.aspectj.lang.annotation.HideMethod;
-import org.aspectj.lang.annotation.HidePreInitialization;
-import org.aspectj.lang.annotation.HideStaticInitialization;
 import org.aspectj.util.PartialOrder;
 import org.aspectj.weaver.AjAttribute;
 import org.aspectj.weaver.AjcMemberMaker;
@@ -2656,11 +2654,11 @@ class BcelClassWeaver implements IClassWeaver {
 			return false;
 		} else {
 			if (startsAngly && mg.getName().equals("<clinit>")) {
-				AnnotationAJ hideAnn = getHideStaticInitAnnotation(mg);
+				AnnotationAJ hideAnn = getHideInitializationAnnotation(mg);
 				if (hideAnn != null) {
-				    hide = true;
-				    String hideJoinpointsWithinStr = hideAnn.getStringFormOfValue("hideJoinpointsWithin");
-				    hideWithin = hideJoinpointsWithinStr == null || Boolean.parseBoolean(hideJoinpointsWithinStr);
+					String joinpoints = hideAnn.getStringFormOfValue("joinpoints");
+					hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;CLASS");
+				    hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;ALL_WITHIN_CLASS");
 				}
 				// clinitShadow =
 				enclosingShadow = BcelShadow.makeStaticInitialization(world, mg);
@@ -2733,29 +2731,11 @@ class BcelClassWeaver implements IClassWeaver {
 	    return null;
 	}
 
-	private boolean hidePreInitialization(LazyMethodGen mg) {
-	    ResolvedType type = mg.getEnclosingClass().getType();
-	    for (AnnotationAJ ann : type.getAnnotations())
-		if (HidePreInitialization.class.getName().equals(ann.getTypeName()))
-		    return true;
-	    return false;
-	}
-
-	private AnnotationAJ getHideInitAnnotation(LazyMethodGen mg) {
-	    ResolvedType type = mg.getEnclosingClass().getType();
-	    for (AnnotationAJ ann : type.getAnnotations()) {
-		if (HideInitialization.class.getName().equals(ann.getTypeName())) {
-		    return ann;
-		}
-	    }
-	    return null;
-	}
-
-	private AnnotationAJ getHideStaticInitAnnotation(LazyMethodGen mg) {
+	private AnnotationAJ getHideInitializationAnnotation(LazyMethodGen mg) {
 		ResolvedType type = mg.getEnclosingClass().getType();
 		for (AnnotationAJ ann : type.getAnnotations()) {
-			if (HideStaticInitialization.class.getName().equals(ann.getTypeName())) {
-			    return ann;
+			if (HideInitialization.class.getName().equals(ann.getTypeName())) {
+				return ann;
 			}
 		}
 		return null;
@@ -2764,11 +2744,13 @@ class BcelClassWeaver implements IClassWeaver {
 	private boolean matchInit(LazyMethodGen mg, List<BcelShadow> shadowAccumulator) {
 	    boolean hide = false;
 	    boolean hideWithin = false;
-	    AnnotationAJ hideAnn = getHideInitAnnotation(mg);
+	    boolean hidePreInit = false;
+	    AnnotationAJ hideAnn = getHideInitializationAnnotation(mg);
 	    if (hideAnn != null) {
-		hide = true;
-		String hideJoinpointsWithinStr = hideAnn.getStringFormOfValue("hideJoinpointsWithin");
-		hideWithin = hideJoinpointsWithinStr == null || Boolean.parseBoolean(hideJoinpointsWithinStr);
+	    	String joinpoints = hideAnn.getStringFormOfValue("joinpoints");
+	    	hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;INSTANCE");
+	    	hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;ALL_WITHIN_INSTANCE");
+	    	hidePreInit = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;PRE_INSTANCE");
 	    }
 		BcelShadow enclosingShadow;
 		// XXX the enclosing join point is wrong for things before ignoreMe.
@@ -2835,7 +2817,7 @@ class BcelClassWeaver implements IClassWeaver {
 		boolean addedInitialization = false;
 		if (!hide)
 			addedInitialization = match(BcelShadow.makeUnfinishedInitialization(world, mg), initializationShadows);
-		if (!hidePreInitialization(mg))
+		if (!hidePreInit)
 			addedInitialization |= match(BcelShadow.makeUnfinishedPreinitialization(world, mg), initializationShadows);
 		mg.matchedShadows = shadowAccumulator;
 		return addedInitialization || !shadowAccumulator.isEmpty();

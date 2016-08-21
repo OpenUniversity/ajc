@@ -5,5 +5,5 @@ import java.lang.annotation.ElementType;
 
 @Target(ElementType.TYPE)
 public @interface HideInitialization {
-    boolean hideJoinpointsWithin() default true;
+	InitializationJoinpointType[] joinpoints() default { InitializationJoinpointType.PRE_INSTANCE, InitializationJoinpointType.INSTANCE, InitializationJoinpointType.CLASS, InitializationJoinpointType.ALL_WITHIN_INSTANCE, InitializationJoinpointType.ALL_WITHIN_CLASS };
 }
