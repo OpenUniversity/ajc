@@ -2658,7 +2658,7 @@ class BcelClassWeaver implements IClassWeaver {
 				if (hideAnn != null) {
 					String joinpoints = hideAnn.getStringFormOfValue("joinpoints");
 					hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;CLASS");
-				    hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;ALL_WITHIN_CLASS");
+				    hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;WITHIN_CLASS");
 				}
 				// clinitShadow =
 				enclosingShadow = BcelShadow.makeStaticInitialization(world, mg);
@@ -2668,7 +2668,7 @@ class BcelClassWeaver implements IClassWeaver {
 				if (hideAnn != null) {
 				    String hideStr = hideAnn.getStringFormOfValue("joinpoints");
 				    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;EXECUTION");
-				    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;ALL_WITHIN");
+				    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;WITHIN");
 				}
 				enclosingShadow = BcelShadow.makeAdviceExecution(world, mg);
 			} else {
@@ -2682,7 +2682,7 @@ class BcelClassWeaver implements IClassWeaver {
 					if (hideAnn != null) {
 					    String hideStr = hideAnn.getStringFormOfValue("joinpoints");
 					    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;EXECUTION");
-					    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;ALL_WITHIN");
+					    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;WITHIN");
 					}
 					enclosingShadow = BcelShadow.makeMethodExecution(world, mg, !canMatchBodyShadows);
 				} else if (effective.isWeaveBody()) {
@@ -2749,7 +2749,7 @@ class BcelClassWeaver implements IClassWeaver {
 	    if (hideAnn != null) {
 	    	String joinpoints = hideAnn.getStringFormOfValue("joinpoints");
 	    	hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;INSTANCE");
-	    	hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;ALL_WITHIN_INSTANCE");
+	    	hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;WITHIN_INSTANCE");
 	    	hidePreInit = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;PRE_INSTANCE");
 	    }
 		BcelShadow enclosingShadow;
