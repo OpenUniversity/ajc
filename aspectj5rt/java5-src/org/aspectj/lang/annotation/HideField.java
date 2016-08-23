@@ -5,5 +5,5 @@ import java.lang.annotation.ElementType;
 
 @Target(ElementType.FIELD)
 public @interface HideField {
-    FieldJoinpointType[] joinpoints() default { FieldJoinpointType.SET, FieldJoinpointType.GET };
+    FieldJoinpoint[] joinpoints() default { FieldJoinpoint.SET, FieldJoinpoint.GET };
 }

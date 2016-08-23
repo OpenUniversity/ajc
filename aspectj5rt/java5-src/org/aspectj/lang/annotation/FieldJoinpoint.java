@@ -1,6 +1,6 @@
 package org.aspectj.lang.annotation;
 
-public enum FieldJoinpointType {
+public enum FieldJoinpoint {
     SET,
     GET
 }
