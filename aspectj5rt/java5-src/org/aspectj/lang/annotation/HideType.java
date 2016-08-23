@@ -5,5 +5,5 @@ import java.lang.annotation.ElementType;
 
 @Target(ElementType.TYPE)
 public @interface HideType {
-	TypeJoinpoint[] joinpoints() default { TypeJoinpoint.PRE_INSTANCE, TypeJoinpoint.INSTANCE, TypeJoinpoint.CLASS, TypeJoinpoint.WITHIN_INSTANCE, TypeJoinpoint.WITHIN_CLASS };
+	TypeJoinpoint[] joinpoints() default { TypeJoinpoint.PRE_INIT, TypeJoinpoint.INIT, TypeJoinpoint.STATIC_INIT, TypeJoinpoint.WITHIN_INIT, TypeJoinpoint.WITHIN_STATIC_INIT };
 }

@@ -1,9 +1,9 @@
 package org.aspectj.lang.annotation;
 
 public enum TypeJoinpoint {
-	INSTANCE,
-	PRE_INSTANCE,
-	CLASS,
-	WITHIN_INSTANCE,
-	WITHIN_CLASS
+	INIT,
+	PRE_INIT,
+	STATIC_INIT,
+	WITHIN_INIT,
+	WITHIN_STATIC_INIT
 }

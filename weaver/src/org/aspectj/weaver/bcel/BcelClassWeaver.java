@@ -2657,8 +2657,8 @@ class BcelClassWeaver implements IClassWeaver {
 				AnnotationAJ hideAnn = getHideTypeAnnotation(mg);
 				if (hideAnn != null) {
 					String joinpoints = hideAnn.getStringFormOfValue("joinpoints");
-					hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;CLASS");
-				    hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;WITHIN_CLASS");
+					hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;STATIC_INIT");
+				    hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;WITHIN_STATIC_INIT");
 				}
 				// clinitShadow =
 				enclosingShadow = BcelShadow.makeStaticInitialization(world, mg);
@@ -2748,9 +2748,9 @@ class BcelClassWeaver implements IClassWeaver {
 	    AnnotationAJ hideAnn = getHideTypeAnnotation(mg);
 	    if (hideAnn != null) {
 	    	String joinpoints = hideAnn.getStringFormOfValue("joinpoints");
-	    	hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;INSTANCE");
-	    	hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;WITHIN_INSTANCE");
-	    	hidePreInit = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;PRE_INSTANCE");
+	    	hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;INIT");
+	    	hideWithin = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;WITHIN_INIT");
+	    	hidePreInit = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/TypeJoinpoint;PRE_INIT");
 	    }
 		BcelShadow enclosingShadow;
 		// XXX the enclosing join point is wrong for things before ignoreMe.
