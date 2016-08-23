@@ -59,7 +59,7 @@ import org.aspectj.bridge.MessageUtil;
 import org.aspectj.bridge.WeaveMessage;
 import org.aspectj.bridge.context.CompilationAndWeavingContext;
 import org.aspectj.bridge.context.ContextToken;
-import org.aspectj.lang.annotation.HideInitialization;
+import org.aspectj.lang.annotation.HideType;
 import org.aspectj.lang.annotation.HideField;
 import org.aspectj.lang.annotation.HideMethod;
 import org.aspectj.util.PartialOrder;
@@ -2654,7 +2654,7 @@ class BcelClassWeaver implements IClassWeaver {
 			return false;
 		} else {
 			if (startsAngly && mg.getName().equals("<clinit>")) {
-				AnnotationAJ hideAnn = getHideInitializationAnnotation(mg);
+				AnnotationAJ hideAnn = getHideTypeAnnotation(mg);
 				if (hideAnn != null) {
 					String joinpoints = hideAnn.getStringFormOfValue("joinpoints");
 					hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;CLASS");
@@ -2731,10 +2731,10 @@ class BcelClassWeaver implements IClassWeaver {
 	    return null;
 	}
 
-	private AnnotationAJ getHideInitializationAnnotation(LazyMethodGen mg) {
+	private AnnotationAJ getHideTypeAnnotation(LazyMethodGen mg) {
 		ResolvedType type = mg.getEnclosingClass().getType();
 		for (AnnotationAJ ann : type.getAnnotations()) {
-			if (HideInitialization.class.getName().equals(ann.getTypeName())) {
+			if (HideType.class.getName().equals(ann.getTypeName())) {
 				return ann;
 			}
 		}
@@ -2745,7 +2745,7 @@ class BcelClassWeaver implements IClassWeaver {
 	    boolean hide = false;
 	    boolean hideWithin = false;
 	    boolean hidePreInit = false;
-	    AnnotationAJ hideAnn = getHideInitializationAnnotation(mg);
+	    AnnotationAJ hideAnn = getHideTypeAnnotation(mg);
 	    if (hideAnn != null) {
 	    	String joinpoints = hideAnn.getStringFormOfValue("joinpoints");
 	    	hide = joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/InitializationJoinpointType;INSTANCE");
