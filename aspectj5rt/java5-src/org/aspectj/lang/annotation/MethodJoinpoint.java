@@ -1,6 +1,6 @@
 package org.aspectj.lang.annotation;
 
-public enum MethodJoinpointType {
+public enum MethodJoinpoint {
     EXECUTION,
     CALL,
     WITHIN

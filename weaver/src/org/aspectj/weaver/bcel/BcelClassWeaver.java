@@ -2667,8 +2667,8 @@ class BcelClassWeaver implements IClassWeaver {
 				AnnotationAJ hideAnn = getHideMethodAnnotation(mg);
 				if (hideAnn != null) {
 				    String hideStr = hideAnn.getStringFormOfValue("joinpoints");
-				    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;EXECUTION");
-				    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;WITHIN");
+				    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpoint;EXECUTION");
+				    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpoint;WITHIN");
 				}
 				enclosingShadow = BcelShadow.makeAdviceExecution(world, mg);
 			} else {
@@ -2681,8 +2681,8 @@ class BcelClassWeaver implements IClassWeaver {
 					AnnotationAJ hideAnn = getHideMethodAnnotation(mg);
 					if (hideAnn != null) {
 					    String hideStr = hideAnn.getStringFormOfValue("joinpoints");
-					    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;EXECUTION");
-					    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;WITHIN");
+					    hide = hideStr == null ||  hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpoint;EXECUTION");
+					    hideWithin = hideStr == null || hideStr.contains("Lorg/aspectj/lang/annotation/MethodJoinpoint;WITHIN");
 					}
 					enclosingShadow = BcelShadow.makeMethodExecution(world, mg, !canMatchBodyShadows);
 				} else if (effective.isWeaveBody()) {
@@ -3334,7 +3334,7 @@ class BcelClassWeaver implements IClassWeaver {
 	for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations()) {
 	    if (HideMethod.class.getName().equals(ann.getTypeName())) {
 		String joinpoints = ann.getStringFormOfValue("joinpoints");
-		return joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/MethodJoinpointType;CALL");
+		return joinpoints == null || joinpoints.contains("Lorg/aspectj/lang/annotation/MethodJoinpoint;CALL");
 	    }
 	}
 	return false;

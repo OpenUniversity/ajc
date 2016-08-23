@@ -5,5 +5,5 @@ import java.lang.annotation.ElementType;
 
 @Target(ElementType.METHOD)
 public @interface HideMethod {
-    MethodJoinpointType[] joinpoints() default { MethodJoinpointType.CALL, MethodJoinpointType.EXECUTION, MethodJoinpointType.WITHIN };
+    MethodJoinpoint[] joinpoints() default { MethodJoinpoint.CALL, MethodJoinpoint.EXECUTION, MethodJoinpoint.WITHIN };
 }
