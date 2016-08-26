@@ -996,13 +996,12 @@ public class AjBuildManager implements IOutputClassFileNameProvider, IBinarySour
 		int idx = 0;
 		for (Iterator<File> fIterator = files.iterator(); fIterator.hasNext();) {
 			File f = fIterator.next();
-			for (Transformation t : AjBuildConfig.transformations) {
+			for (Transformation t : AjBuildConfig.transformations)
 			    if (f.getName().endsWith(t.extension())){
-				try { f = t.convert2java(f); }
-				catch (Exception e) { e.printStackTrace(); }
-				break;
+			    	try { f = t.convert2java(f); }
+			    	catch (Exception e) { e.printStackTrace(); }
+			    	break;
 			    }
-			}
 			filenames[idx++] = f.getPath();
 		}
 

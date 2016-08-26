@@ -702,11 +702,9 @@ class BcelAdvice extends Advice {
 		BcelAdvice o = (BcelAdvice) other;
 
 		try {
-			double order = getOrder(this);
-			double oOrder = getOrder(o);
-			if (order != oOrder) {
-				return order < oOrder ? -1 : 1;
-			}
+			double diff =  getOrder(this) - getOrder(o);
+			if (diff != 0)
+				return diff < 0 ? -1 : 1;
 		} catch (Exception e) {}
 
 		// System.err.println("compareTo: " + this + ", " + o);
