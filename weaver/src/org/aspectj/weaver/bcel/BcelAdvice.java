@@ -703,9 +703,9 @@ class BcelAdvice extends Advice {
 
 		try {
 			double order = getOrder(this);
-			double o_order = getOrder(o);
-			if (order != o_order) {
-				return order < o_order ? -1 : 1;
+			double oOrder = getOrder(o);
+			if (order != oOrder) {
+				return order < oOrder ? -1 : 1;
 			}
 		} catch (Exception e) {}
 
@@ -771,7 +771,7 @@ class BcelAdvice extends Advice {
 			}
 		}
 		if (order == null)
-			return 0;
+			throw new RuntimeException("@Order is not set");
 		return Double.valueOf(order.getStringFormOfValue("value"));
 	}
 
