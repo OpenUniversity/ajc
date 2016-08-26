@@ -3341,7 +3341,7 @@ class BcelClassWeaver implements IClassWeaver {
     }
 
     private boolean hideSetInstruction(Member jpSig) {
-	if (jpSig.resolve(world).getAnnotations() == null)
+	if (jpSig.resolve(world) == null || jpSig.resolve(world).getAnnotations() == null)
 	    return false;
 	for (AnnotationAJ ann : jpSig.resolve(world).getAnnotations())
 		if (HideField.class.getName().equals(ann.getTypeName())) {
