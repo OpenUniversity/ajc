@@ -796,9 +796,8 @@ public class AsmRelationshipProvider {
 	public static String getHandle(AsmManager asm, Advice advice) {
 		if (null == advice.handle) {
 			AnnotationAJ ann = getSourceLocation(advice);
-			if (ann != null) {
+			if (ann != null)
 				advice.handle = ann.getStringFormOfValue("file") + ann.getStringFormOfValue("line");
-			}
 			else {
 				ISourceLocation sl = advice.getSourceLocation();
 				if (sl != null) {
