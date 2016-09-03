@@ -2645,8 +2645,7 @@ class BcelClassWeaver implements IClassWeaver {
 		List<BcelShadow> shadowAccumulator = new ArrayList<BcelShadow>();
 		boolean isOverweaving = world.isOverWeaving();
 		boolean startsAngly = mg.getName().charAt(0) == '<';
-		boolean hide = false;
-		boolean hideWithin = false;
+		boolean hide = false, hideWithin = false;
 		// we want to match ajsynthetic constructors...
 		if (startsAngly && mg.getName().equals("<init>")) {
 			return matchInit(mg, shadowAccumulator);
