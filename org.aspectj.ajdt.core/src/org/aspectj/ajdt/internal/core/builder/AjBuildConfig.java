@@ -85,6 +85,9 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 
     static {
 	File dsals = new File("dsals.txt");
+        if (!dsals.exists()) {
+            dsals = new File("/tmp/dsals.txt");
+        }
 	if (dsals.exists()) {
 	    //	    System.err.println("loading transformations");
 	    BufferedReader br = null;
