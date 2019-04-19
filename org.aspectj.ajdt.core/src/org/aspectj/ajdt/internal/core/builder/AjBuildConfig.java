@@ -84,7 +84,7 @@ public class AjBuildConfig implements CompilerConfigurationChangeFlags {
 	public static final List<Transformation> transformations = new ArrayList<Transformation>();
 
     static {
-	String filename = "dsals.txt";
+	String filename = "dsals.config";
 	File dsals = new File(filename);
         if (!dsals.exists()) {
             dsals = new File(System.getenv("ajc_dir")+File.separator+filename);
